@@ -1,0 +1,61 @@
+use std::str::FromStr;
+
+grammar;
+
+pub NumericLiteral: NumericLiteral = {
+    r"[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?"
+};
+
+DecimalIntegerLiteral: u64 = {
+    r"0" => 0,
+};
+
+DecimalDigits: String = {
+    r"[0-9_]+" => s.replace("_", "")
+};
+
+LegacyOctalLikeDecimalIntegerLiteral: String = {
+    r"0[0-7]+" => {
+        // Add an o to the beginning of the string to make it a valid octal number
+        format!("0o{}", s.chars().skip(1).collect::<String>())
+    }
+};
+
+BinaryDigits: String = {
+    <s:BinaryDigit+> => s
+    <s1:BinaryDigit+> "_" <s2:BinaryDigits> => format!("{}{}", s1, s2)
+};
+
+DecimalDigits: String = {
+    <s:DecimalDigit+> => s
+    <s1:DecimalDigit+> "_" <s2:DecimalDigits> => format!("{}{}", s1, s2)
+};
+
+OctalDigits: String = {
+    <s:OctalDigit+> => s
+    <s1:OctalDigit+> "_" <s2:OctalDigits> => format!("{}{}", s1, s2)
+};
+
+HexDigits: String = {
+    <s:HexDigit+> => s
+    <s1:HexDigit+> "_" <s2:HexDigits> => format!("{}{}", s1, s2)
+};
+
+BinaryIntegerLiteral: String = {
+    "0[bB]" <d:BinaryDigits> => d
+};
+
+OctalIntegerLiteral: String = {
+    "0[oO]" <d:OctalDigits> => d
+};
+
+HexIntegerLiteral: String = {
+    "0[xX]" <d:HexDigits> => d
+};
+
+BinaryDigit: char = r"[01]" => <>.chars().next().unwrap();
+OctalDigit: char = r"[0-7]" => <>.chars().next().unwrap();
+DecimalDigit: char = r"[0-9]" => <>.chars().next().unwrap();
+HexDigit: char = r"[0-9a-fA-F]" => <>.chars().next().unwrap();
+NonOctalDigit: char = r"[89]" => <>.chars().next().unwrap();
+NonZeroDigit: char = r"[1-9]" => <>.chars().next().unwrap();
